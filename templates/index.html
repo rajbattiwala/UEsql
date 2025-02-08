@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UE Query Formatter</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Prism CSS for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/toolbar/prism-toolbar.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Light mode colors - soft, modern glassmorphism */
+            --bg-color: #f0f4f8;
+            --text-color: #2d3748;
+            --container-bg: rgba(255, 255, 255, 0.9);
+            --border-color: rgba(255, 255, 255, 0.18);
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --button-bg: #6366f1;
+            --button-hover: #4f46e5;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --code-text-color: #374151;
+            --code-keyword-color: #7C3AED;
+            --code-function-color: #2563EB;
+            --code-string-color: #059669;
+            --code-number-color: #DC2626;
+            --code-line-number-color: #6B7280;
+            --code-punctuation-color: #374151;
+            --code-operator-color: #374151;
+        }
+
+        [data-theme="dark"] {
+            /* Dark mode colors with glassmorphism */
+            --bg-color: #000814;
+            --text-color: #FFD60A;
+            --container-bg: rgba(0, 29, 61, 0.7);  /* Semi-transparent #001D3D */
+            --border-color: rgba(0, 53, 102, 0.5); /* Semi-transparent #003566 */
+            --input-bg: rgba(0, 29, 61, 0.8);      /* Semi-transparent #001D3D */
+            --button-bg: #FFC300;
+            --button-hover: #FFD60A;
+            --shadow: 0 8px 32px 0 rgba(0, 8, 20, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 29, 61, 0.3);
+            /* Enhanced dark mode syntax colors */
+            --code-text-color: #E5E7EB;          /* Light gray for better readability */
+            --code-keyword-color: #93C5FD;       /* Light blue for keywords */
+            --code-function-color: #FDE68A;      /* Light yellow for functions */
+            --code-string-color: #6EE7B7;        /* Light green for strings */
+            --code-number-color: #FCA5A5;        /* Light red for numbers */
+            --code-punctuation-color: #E5E7EB;   /* Light gray for punctuation */
+            --code-operator-color: #E5E7EB;      /* Light gray for operators */
+            --code-line-number-color: #6B7280;   /* Medium gray for line numbers */
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 47% 33%, rgba(255, 195, 0, 0.1) 0, transparent 59%), 
+                radial-gradient(at 82% 65%, rgba(0, 29, 61, 0.1) 0, transparent 55%);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] body {
+            background-image: 
+                radial-gradient(at 47% 33%, rgba(255, 195, 0, 0.15) 0, transparent 59%), 
+                radial-gradient(at 82% 65%, rgba(0, 53, 102, 0.15) 0, transparent 55%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            background: var(--container-bg);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 30px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            background: var(--container-bg);
+            box-shadow: var(--glass-shadow);
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 20px;
+            padding: 16px;
+            box-sizing: border-box;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            max-width: 100%;
+            height: 300px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--container-bg);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .code-container pre {
+            height: 100%;
+            margin: 0;
+            padding: 15px;
+            background-color: transparent;
+            overflow-y: auto !important;
+            overflow-x: auto;
+        }
+
+        .code-container pre code {
+            display: block;
+            padding: 1em;
+            background: transparent;
+            white-space: pre;
+            overflow-wrap: normal;
+            word-wrap: normal;
+            max-height: none;
+            text-shadow: none !important;  /* Remove default Prism text shadow */
+        }
+
+        :not(pre) > code[class*="language-"],
+        pre[class*="language-"] {
+            background: transparent;
+            margin: 0;
+            padding: 0;
+            max-height: none;
+            overflow: visible;
+        }
+
+        code[class*="language-"],
+        pre[class*="language-"] {
+            color: var(--text-color);
+            background: none;
+            font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            text-align: left;
+            white-space: pre;
+            word-spacing: normal;
+            word-break: normal;
+            word-wrap: normal;
+            line-height: 1.5;
+            tab-size: 4;
+            hyphens: none;
+            max-height: none;
+        }
+
+        .code-container pre::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .code-container pre::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-container pre::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 6px;
+            border: 3px solid var(--container-bg);
+        }
+
+        .code-container pre::-webkit-scrollbar-thumb:hover {
+            background-color: var(--button-bg);
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+        }
+
+        [data-theme="dark"] .theme-switch-wrapper {
+            background: rgba(0, 29, 61, 0.3);
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 28px;
+            position: relative;
+            width: 52px;
+            margin: 0;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: rgba(99, 102, 241, 0.2);
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+            border: 2px solid transparent;
+        }
+
+        .slider:before {
+            background-color: white;
+            bottom: 2px;
+            content: "";
+            height: 20px;
+            left: 2px;
+            position: absolute;
+            transition: .4s;
+            width: 20px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input:checked + .slider {
+            background-color: #FFC300;
+            border-color: transparent;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .theme-switch-wrapper em {
+            margin: 0;
+            font-style: normal;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .checkbox-wrapper {
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--button-bg);
+            margin: 0;
+        }
+
+        .checkbox-wrapper label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        #copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            z-index: 10;
+            background: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: var(--shadow);
+        }
+
+        #copy-button:hover {
+            background: var(--button-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: var(--container-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: none;
+            z-index: 1000;
+            box-shadow: var(--glass-shadow);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                border-radius: 16px;
+            }
+            .header {
+                padding: 15px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .theme-switch-wrapper {
+                margin-top: 10px;
+            }
+        }
+
+        /* Line numbers styling */
+        .line-numbers .line-numbers-rows {
+            position: absolute;
+            pointer-events: none;
+            top: 0;
+            font-size: 100%;
+            left: -3.8em;
+            width: 3em;
+            letter-spacing: -1px;
+            border-right: 1px solid var(--border-color);
+            user-select: none;
+            padding-top: 1em;
+        }
+
+        .line-numbers-rows > span {
+            display: block;
+            counter-increment: linenumber;
+            color: var(--text-color);
+            opacity: 0.5;
+        }
+
+        .line-numbers-rows > span:before {
+            content: counter(linenumber);
+            display: block;
+            padding-right: 0.8em;
+            text-align: right;
+        }
+
+        /* Adjust code container for line numbers */
+        .code-container pre {
+            margin: 0;
+            padding: 1em 0 1em 4.5em !important;
+        }
+
+        .code-container pre[class*="language-"].line-numbers {
+            position: relative;
+            padding-left: 4.5em;
+            counter-reset: linenumber;
+        }
+
+        /* Ensure code doesn't overlap with line numbers */
+        .code-container pre code {
+            margin-left: 0.5em;
+        }
+
+        /* Code syntax highlighting */
+        .language-sql {
+            color: var(--code-text-color) !important;
+            font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
+            font-size: 14px !important;
+            line-height: 1.6 !important;
+            font-weight: 500 !important;
+        }
+
+        /* SQL Keywords */
+        .token.keyword {
+            color: var(--code-keyword-color) !important;
+            font-weight: 600 !important;
+        }
+
+        /* SQL Functions */
+        .token.function {
+            color: var(--code-function-color) !important;
+            font-weight: 500 !important;
+        }
+
+        /* SQL Strings */
+        .token.string {
+            color: var(--code-string-color) !important;
+        }
+
+        /* SQL Numbers */
+        .token.number {
+            color: var(--code-number-color) !important;
+        }
+
+        /* SQL Punctuation (dots, periods) */
+        .token.punctuation {
+            color: var(--code-punctuation-color) !important;
+            opacity: 1 !important;
+            font-weight: 600 !important;
+        }
+
+        /* SQL Operators */
+        .token.operator {
+            color: var(--code-operator-color) !important;
+            opacity: 1 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Table names and column names */
+        .token.property,
+        .token.entity {
+            color: var(--code-text-color) !important;
+            font-weight: 500 !important;
+        }
+
+        /* Line Numbers */
+        .line-numbers-rows > span {
+            color: var(--code-line-number-color) !important;
+            opacity: 0.8;
+        }
+
+        /* Dark mode specific adjustments */
+        [data-theme="dark"] .language-sql {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        [data-theme="dark"] .token.keyword {
+            text-shadow: 0 0 8px rgba(147, 197, 253, 0.3) !important;
+        }
+
+        [data-theme="dark"] .token.function {
+            text-shadow: 0 0 8px rgba(253, 230, 138, 0.3) !important;
+        }
+
+        [data-theme="dark"] .token.string {
+            text-shadow: 0 0 8px rgba(110, 231, 183, 0.3) !important;
+        }
+
+        [data-theme="dark"] .token.number {
+            text-shadow: 0 0 8px rgba(252, 165, 165, 0.3) !important;
+        }
+
+        /* Code container background in dark mode */
+        [data-theme="dark"] .code-container {
+            background: rgba(0, 29, 61, 0.8);  /* Slightly more opaque for better contrast */
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fira+Code&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-5">
+        <div class="header">
+            <h1>UE Query Formatter</h1>
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider"></div>
+                </label>
+                <em>Dark Mode</em>
+            </div>
+        </div>
+        
+        <form method="POST" class="mb-4">
+            <div class="mb-3">
+                <label for="sql" class="form-label">Enter your SQL query:</label>
+                <textarea class="form-control" id="sql" name="sql" rows="5" required>{{ request.form['sql'] }}</textarea>
+            </div>
+            
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="add_aliases" id="add_aliases" 
+                       {% if request.form.get('add_aliases') %}checked{% endif %}>
+                <label class="form-check-label" for="add_aliases">
+                    Add column aliases (e.g., table_column)
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Format SQL</button>
+        </form>
+
+        {% if formatted_sql %}
+        <div class="code-container">
+            <button id="copy-button" class="btn btn-sm btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                </svg>
+                Copy
+            </button>
+            <pre class="line-numbers"><code class="language-sql">{{ formatted_sql }}</code></pre>
+        </div>
+
+        <!-- Toast notification -->
+        <div class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Copied to clipboard!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Prism JS for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-sql.min.js"></script>
+    
+    <script>
+        // Dark mode toggle
+        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+        const currentTheme = localStorage.getItem('theme');
+
+        if (currentTheme) {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            if (currentTheme === 'dark') {
+                toggleSwitch.checked = true;
+            }
+        }
+
+        function switchTheme(e) {
+            if (e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        toggleSwitch.addEventListener('change', switchTheme, false);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const copyButton = document.getElementById('copy-button');
+            const toast = document.querySelector('.toast');
+            
+            if (copyButton) {
+                copyButton.addEventListener('click', function() {
+                    // Get the formatted SQL
+                    const code = document.querySelector('code.language-sql').textContent;
+                    
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(code).then(function() {
+                        // Show toast notification
+                        const bsToast = new bootstrap.Toast(toast);
+                        bsToast.show();
+                        
+                        // Change button text temporarily
+                        copyButton.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                            </svg>
+                            Copied!
+                        `;
+                        
+                        setTimeout(function() {
+                            copyButton.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                                </svg>
+                                Copy
+                            `;
+                        }, 2000);
+                    });
+                });
+            }
+        });
+    </script>
+
+    <!-- Add these before closing body tag, after existing Prism.js scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/line-numbers/prism-line-numbers.min.js"></script>
+</body>
+</html>
