@@ -4,73 +4,43 @@ import re
 
 app = Flask(__name__)
 
-'''def add_column_aliases(sql):
+def split_columns(columns_str):
     """
-    Adds aliases to columns in the main SELECT statement.
+    Splits a comma-separated list of columns while ignoring commas within
+    parentheses or quotes.
     """
-    # First, standardize the SQL
-    sql = sqlparse.format(sql, strip_comments=True)
-    
-    if sql.upper().strip().startswith('WITH'):
-        # Find the main SELECT statement after all CTEs
-        pattern = r'(\)\s*SELECT\s*)([\s\S]*?)(\s*FROM\s*)'
-        match = re.search(pattern, sql, re.IGNORECASE)
-        
-        if match:
-            before_select = sql[:match.start(1)]
-            select_columns = match.group(2)
-            after_from = sql[match.end(2):]
-            
-            # Process the columns
-            columns = [col.strip() for col in select_columns.split(',')]
-            formatted_columns = []
-            
-            for col in columns:
-                # Skip if column already has an alias
-                if ' AS ' in col.upper():
-                    formatted_columns.append(col)
-                    continue
-                    
-                # Skip if it's a function
-                if any(col.upper().startswith(func + '(') for func in ['COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 'STRING_AGG', 'DATE_TRUNC', 'RANK']):
-                    formatted_columns.append(col)
-                    continue
-                    
-                # Process regular table columns
-                if '.' in col:
-                    table_alias, column_name = col.split('.')
-                    formatted_columns.append(
-                        f"{table_alias}.{column_name} AS {table_alias}_{column_name}"
-                    )
-                else:
-                    formatted_columns.append(col)
-            
-            # Reconstruct the query
-            final_sql = (
-                before_select + 
-                ')\nSELECT\n    ' + 
-                ',\n    '.join(formatted_columns) + 
-                '\nFROM' + 
-                after_from
-            )
-        else:
-            final_sql = sql
-    else:
-        final_sql = sql
-    
-    # Final formatting
-    formatted_sql = sqlparse.format(
-        final_sql,
-        reindent=True,
-        keyword_case='upper',
-        indent_width=4
-    )
-    
-    return formatted_sql
-'''
+    columns = []
+    current_col = []
+    paren_level = 0
+    in_single_quote = False
+    in_double_quote = False
+    escaped = False
+    for char in columns_str:
+        if char == "\\":
+            escaped = True
+            current_col.append(char)
+            continue
 
-import re
-import sqlparse
+        if char == "'" and not in_double_quote and not escaped:
+            in_single_quote = not in_single_quote
+        elif char == '"' and not in_single_quote and not escaped:
+            in_double_quote = not in_double_quote
+        escaped = False
+
+        if char == '(' and not in_single_quote and not in_double_quote:
+            paren_level += 1
+        elif char == ')' and not in_single_quote and not in_double_quote:
+            if paren_level > 0:
+                paren_level -= 1
+
+        if char == ',' and paren_level == 0 and not in_single_quote and not in_double_quote:
+            columns.append(''.join(current_col).strip())
+            current_col = []
+        else:
+            current_col.append(char)
+    if current_col:
+        columns.append(''.join(current_col).strip())
+    return columns
 
 def add_column_aliases(sql):
     """
@@ -80,7 +50,7 @@ def add_column_aliases(sql):
     # Standardize SQL (remove comments, etc.)
     sql = sqlparse.format(sql, strip_comments=True)
 
-    # Define functions to ignore for aliasing (add NVL and NVL2 here)
+    # Define functions to ignore for aliasing (including NVL and NVL2 now)
     ignored_functions = [
         'COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 
         'STRING_AGG', 'DATE_TRUNC', 'RANK',
@@ -96,8 +66,8 @@ def add_column_aliases(sql):
             before_select = sql[:match.start(1)]
             select_columns = match.group(2)
             after_from = sql[match.end(2):]
-            # Process the column list
-            columns = [col.strip() for col in select_columns.split(',')]
+            # Process the column list using the new split_columns function
+            columns = split_columns(select_columns)
             formatted_columns = []
             for col in columns:
                 # Skip if column already has an alias
@@ -131,8 +101,8 @@ def add_column_aliases(sql):
             select_keyword = match.group(1)
             select_columns = match.group(2)
             from_keyword = match.group(3)
-            # Process the columns
-            columns = [col.strip() for col in select_columns.split(',')]
+            # Process the columns using the new split_columns function
+            columns = split_columns(select_columns)
             formatted_columns = []
             for col in columns:
                 # Skip if alias already exists
