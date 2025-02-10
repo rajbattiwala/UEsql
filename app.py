@@ -80,6 +80,13 @@ def add_column_aliases(sql):
     # Standardize SQL (remove comments, etc.)
     sql = sqlparse.format(sql, strip_comments=True)
 
+    # Define functions to ignore for aliasing (add NVL and NVL2 here)
+    ignored_functions = [
+        'COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 
+        'STRING_AGG', 'DATE_TRUNC', 'RANK',
+        'NVL', 'NVL2'
+    ]
+
     # Check if the query starts with a CTE using WITH
     if sql.upper().strip().startswith('WITH'):
         # Attempt to find the main SELECT statement after the CTE(s)
@@ -97,9 +104,8 @@ def add_column_aliases(sql):
                 if ' AS ' in col.upper():
                     formatted_columns.append(col)
                     continue
-                # Skip if it's a function call
-                if any(col.upper().startswith(func + '(') for func in 
-                       ['COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 'STRING_AGG', 'DATE_TRUNC', 'RANK']):
+                # Skip if it's a function call from the ignored list
+                if any(col.upper().startswith(func + '(') for func in ignored_functions):
                     formatted_columns.append(col)
                     continue
                 # Add alias for regular table columns
@@ -133,9 +139,8 @@ def add_column_aliases(sql):
                 if ' AS ' in col.upper():
                     formatted_columns.append(col)
                     continue
-                # Skip if the column is a function call
-                if any(col.upper().startswith(func + '(') for func in 
-                       ['COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 'STRING_AGG', 'DATE_TRUNC', 'RANK']):
+                # Skip if the column is a function call from the ignored list
+                if any(col.upper().startswith(func + '(') for func in ignored_functions):
                     formatted_columns.append(col)
                     continue
                 # Add alias if the column follows the table.column pattern
