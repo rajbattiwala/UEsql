@@ -54,7 +54,7 @@ def add_column_aliases(sql):
     ignored_functions = [
         'COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 
         'STRING_AGG', 'DATE_TRUNC', 'RANK',
-        'NVL', 'NVL2', 'SUBSTR'
+        'NVL', 'NVL2', 'SUBSTR', 'TRUNC'
     ]
 
     # Check if the query starts with a CTE using WITH
