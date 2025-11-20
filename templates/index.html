@@ -50,8 +50,7 @@
             --text-muted: #475569;
             --shadow-glass: 0 8px 32px 0 rgba(148, 163, 184, 0.25);
             --input-bg: rgba(255, 255, 255, 0.9);
-            /* Keep code background dark for Prism Tomorrow theme compatibility */
-            --code-bg: #1e293b;
+            --code-bg: rgba(255, 255, 255, 0.95);
             --orb-opacity: 0.15;
             --toast-bg: rgba(255, 255, 255, 0.95);
             --toast-text: #0f172a;
@@ -293,6 +292,12 @@
             transform: scale(1.01);
         }
 
+        [data-theme="light"] textarea:focus {
+            background: rgba(255, 255, 255, 1);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1), 0 0 20px rgba(37, 99, 235, 0.1);
+        }
+
         /* Bouncy Checkbox */
         .checkmark {
             /* ... existing styles ... */
@@ -430,6 +435,67 @@
             font-family: 'JetBrains Mono', monospace !important;
             font-size: 14px !important;
             text-shadow: none !important;
+        }
+
+        [data-theme="light"] code[class*="language-"],
+        [data-theme="light"] pre[class*="language-"] {
+            color: #0f172a !important;
+            text-shadow: none !important;
+        }
+
+        [data-theme="light"] .token.comment,
+        [data-theme="light"] .token.prolog,
+        [data-theme="light"] .token.doctype,
+        [data-theme="light"] .token.cdata {
+            color: #64748b !important;
+        }
+
+        [data-theme="light"] .token.punctuation {
+            color: #475569 !important;
+        }
+
+        [data-theme="light"] .token.property,
+        [data-theme="light"] .token.tag,
+        [data-theme="light"] .token.boolean,
+        [data-theme="light"] .token.number,
+        [data-theme="light"] .token.constant,
+        [data-theme="light"] .token.symbol,
+        [data-theme="light"] .token.deleted {
+            color: #ef4444 !important;
+        }
+
+        [data-theme="light"] .token.selector,
+        [data-theme="light"] .token.attr-name,
+        [data-theme="light"] .token.string,
+        [data-theme="light"] .token.char,
+        [data-theme="light"] .token.builtin,
+        [data-theme="light"] .token.inserted {
+            color: #16a34a !important;
+        }
+
+        [data-theme="light"] .token.operator,
+        [data-theme="light"] .token.entity,
+        [data-theme="light"] .token.url,
+        [data-theme="light"] .language-css .token.string,
+        [data-theme="light"] .style .token.string {
+            color: #d97706 !important;
+        }
+
+        [data-theme="light"] .token.atrule,
+        [data-theme="light"] .token.attr-value,
+        [data-theme="light"] .token.keyword {
+            color: #2563eb !important;
+        }
+
+        [data-theme="light"] .token.function,
+        [data-theme="light"] .token.class-name {
+            color: #db2777 !important;
+        }
+
+        [data-theme="light"] .token.regex,
+        [data-theme="light"] .token.important,
+        [data-theme="light"] .token.variable {
+            color: #ea580c !important;
         }
 
         /* Loading Overlay */
