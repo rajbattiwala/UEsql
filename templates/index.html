@@ -39,17 +39,26 @@
         [data-theme="light"] {
             /* Light Mode */
             --bg-dark: #f8fafc;
-            --glass-bg: rgba(255, 255, 255, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --glass-highlight: rgba(255, 255, 255, 0.8);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --glass-highlight: rgba(255, 255, 255, 1);
             --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             --accent-color: #2563eb;
             --text-main: #0f172a;
-            --text-muted: #64748b;
-            --shadow-glass: 0 8px 32px 0 rgba(148, 163, 184, 0.15);
-            --input-bg: rgba(255, 255, 255, 0.5);
-            --code-bg: rgba(255, 255, 255, 0.5);
+            --text-muted: #475569;
+            --shadow-glass: 0 8px 32px 0 rgba(148, 163, 184, 0.25);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            /* Keep code background dark for Prism Tomorrow theme compatibility */
+            --code-bg: #1e293b;
             --orb-opacity: 0.15;
+            --toast-bg: #1e293b;
+            --toast-text: #ffffff;
+        }
+
+        :root {
+            /* ... existing ... */
+            --toast-bg: var(--glass-bg);
+            --toast-text: white;
         }
 
         * {
@@ -237,6 +246,11 @@
             resize: vertical;
             transition: all 0.3s ease;
             outline: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="light"] textarea {
+            border-color: rgba(0, 0, 0, 0.15);
         }
 
         /* Global Animations */
@@ -533,12 +547,12 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: var(--glass-bg);
+            background: var(--toast-bg);
             backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
             padding: 16px 24px;
             border-radius: 12px;
-            color: white;
+            color: var(--toast-text);
             transform: translateY(100px);
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
